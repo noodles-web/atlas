@@ -1,6 +1,6 @@
 # Atlas
 
-Atlas is a portfolio and market simulator designed to run as a web app, mobile app, and backend service with a shared product flow.
+Atlas is a portfolio and market app designed to run as a web app, mobile app, and backend service with a shared product flow.
 
 ## Projects
 
