@@ -1,0 +1,19 @@
+{
+  "name": "atlas-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n web,server,mobile \"npm run dev --workspace @atlas/web\" \"npm run dev --workspace @atlas/server\" \"npm run start --workspace @atlas/mobile\"",
+    "build": "npm run build --workspace @atlas/web && npm run build --workspace @atlas/server",
+    "lint": "npm run lint --workspace @atlas/web",
+    "db:generate": "npm run db:generate --workspace @atlas/server",
+    "db:push": "npm run db:push --workspace @atlas/server",
+    "db:seed": "npm run db:seed --workspace @atlas/server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  }
+}
