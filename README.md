@@ -1,39 +1,55 @@
-# Atlas
+import 'dotenv/config';
+import cors from 'cors';
+import express from 'express';
+import { PrismaClient } from '@prisma/client';
 
-Atlas is a portfolio and market app designed to run as a web app, mobile app, and backend service with a shared product flow.
+const app = express();
+const prisma = new PrismaClient();
+const port = Number(process.env.PORT || 4000);
 
-## Projects
+app.use(cors());
+app.use(express.json());
 
-- `apps/web` — Next.js website for market and portfolio management
-- `apps/mobile` — Expo React Native app for mobile use
-- `apps/server` — Express + Prisma backend service
+app.get('/health', (_req, res) => {
+  res.json({ ok: true, service: 'atlas-server' });
+});
 
-## Quick start
+app.get('/api/assets', async (_req, res) => {
+  const assets = await prisma.asset.findMany({
+    orderBy: { name: 'asc' },
+  });
 
-```bash
-npm install
-npm run db:generate
-npm run db:push
-npm run db:seed
-npm run dev
-```
+  res.json(assets);
+});
 
-## Environment
+app.get('/api/portfolio', async (_req, res) => {
+  const assets = await prisma.asset.findMany();
+  const total = assets.reduce((sum, asset) => sum + Number(asset.price) * Number(asset.quantity || 0), 10000);
 
-Create environment files as needed:
+  res.json({
+    cash: 10000,
+    total,
+    assets,
+    invested: assets.reduce((sum, asset) => sum + Number(asset.price) * Number(asset.quantity || 0), 0),
+  });
+});
 
-- `apps/server/.env` with `DATABASE_URL="file:./dev.db"`
+app.post('/api/assets', async (req, res) => {
+  const { name, ticker, price, kind } = req.body ?? {};
 
-## Stack
+  if (!name || !ticker || !price || !kind) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
 
-- Frontend: Next.js + React
-- Mobile: Expo + React Native
-- Backend: Express + Prisma + SQLite (local development)
+  const asset = await prisma.asset.upsert({
+    where: { ticker },
+    update: { name, price, kind },
+    create: { name, ticker, price, kind },
+  });
 
-## Features
+  return res.status(201).json(asset);
+});
 
-- Market dashboard with stock and crypto assets
-- Portfolio tracking and trade simulation
-- Custom asset creation
-- Persistent settings and local data
-- REST API foundation for web and mobile clients
+app.listen(port, () => {
+  console.log(`Atlas API listening on http://localhost:${port}`);
+});
